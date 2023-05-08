@@ -15,7 +15,7 @@ firstRule:  'read' (VARIABLE ',')* VARIABLE (STREDNIK)+                         
 
 condition: 'if' '(' expression ')' '{' firstRule (','? firstRule)* '}'                                 #blockVisitor
           | 'if' '(' expression ')' firstRule* ('else' firstRule*)?                                    #ifVisitor
-          | 'while' '(' expression ')' '{' firstRule (','? firstRule)* '}'                             #blockVisitor
+          | 'while' '(' expression ')' '{' firstRule (','? firstRule)* '}'                             #whileBlock
           ;
 promenne: DATOVY_TYP (VARIABLE ',')* VARIABLE (PRIRAZENI (datovyTyp ('+'|'-'|'*'|'/')?)*)?         #deklaracePromenne
         | VARIABLE (PRIRAZENI VARIABLE)* PRIRAZENI ((datovyTyp | VARIABLE) op=('+'|'-'|'*'|'/')?)+      #inicializacePromenne
@@ -72,7 +72,7 @@ BOOLEAN : 'true' | 'false';
 VARIABLE: [a-zA-Z] [a-zA-Z0-9]*;
 STRINGSPECIAL: '"<' [a-zA-Z-(), ]+ '>"';
 STRINGFIRSTPART : '"' ' '? [a-zA-Z0-9.()+*/%=,<>==!= ]* '-'? [a-zA-Z0-9.()+*/%=,<>==!= ]* ':' ' '? '"';
-STRING: ('"' [a-zA-Z0-9=,() ]+ '"') | '""';
+STRING: ('"' [a-zA-Z0-9=,()+. ]+ '"') | '""';
 
 //COMMENT: ('//' [a-zA-Z0-9.()"*-+/%, ]+ ';') |  ('//' [a-zA-Z0-9.()"*-+/%,]+ ' ');
 COMMENT: '//' [a-zA-Z0-9.()"*-+/%, ]+ ';'?;

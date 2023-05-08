@@ -585,6 +585,31 @@ public class GrammarParser extends Parser {
 			else return visitor.visitChildren(this);
 		}
 	}
+	public static class WhileBlockContext extends ConditionContext {
+		public ExpressionContext expression() {
+			return getRuleContext(ExpressionContext.class,0);
+		}
+		public List<FirstRuleContext> firstRule() {
+			return getRuleContexts(FirstRuleContext.class);
+		}
+		public FirstRuleContext firstRule(int i) {
+			return getRuleContext(FirstRuleContext.class,i);
+		}
+		public WhileBlockContext(ConditionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof GrammarListener ) ((GrammarListener)listener).enterWhileBlock(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof GrammarListener ) ((GrammarListener)listener).exitWhileBlock(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof GrammarVisitor ) return ((GrammarVisitor<? extends T>)visitor).visitWhileBlock(this);
+			else return visitor.visitChildren(this);
+		}
+	}
 
 	public final ConditionContext condition() throws RecognitionException {
 		ConditionContext _localctx = new ConditionContext(_ctx, getState());
@@ -696,7 +721,7 @@ public class GrammarParser extends Parser {
 				}
 				break;
 			case 3:
-				_localctx = new BlockVisitorContext(_localctx);
+				_localctx = new WhileBlockContext(_localctx);
 				enterOuterAlt(_localctx, 3);
 				{
 				setState(104);

@@ -71,6 +71,13 @@ public interface GrammarVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitIfVisitor(GrammarParser.IfVisitorContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code whileBlock}
+	 * labeled alternative in {@link GrammarParser#condition}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitWhileBlock(GrammarParser.WhileBlockContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code deklaracePromenne}
 	 * labeled alternative in {@link GrammarParser#promenne}.
 	 * @param ctx the parse tree

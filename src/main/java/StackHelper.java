@@ -8,23 +8,9 @@ public class StackHelper {
 
     public void addVariable(VirtualMachine.myStack stack, Object value){
         if(stackHelper.containsKey(value)){
-            System.out.println("This variable is already in stack");
-            exit(1);
+            MyVisitor.sb_Errors.append("Variable "+value+" is already declared\n");
         }
 
-        /*
-            switch (stack.primitives) {
-                case INT ->
-                        stackHelper.put((String) value, new VirtualMachine.myStack(stack.primitives.toString().toUpperCase(), 0));
-                case FLOAT ->
-                        stackHelper.put((String) value, new VirtualMachine.myStack(stack.primitives.toString().toUpperCase(), 0.0));
-                case BOOL ->
-                        stackHelper.put((String) value, new VirtualMachine.myStack(stack.primitives.toString().toUpperCase(), false));
-                case STRING ->
-                        stackHelper.put((String) value, new VirtualMachine.myStack(stack.primitives.toString().toUpperCase(), ""));
-            }
-
-         */
         stackHelper.put((String) value,stack);
 
     }
@@ -34,8 +20,7 @@ public class StackHelper {
             return stackHelper.get(id);
         }
         else {
-            System.out.println("This variable does not exists in stack");
-            exit(1);
+            MyVisitor.sb_Errors.append("Variable "+id+"does not exists\n");
         }
         return null;
     }

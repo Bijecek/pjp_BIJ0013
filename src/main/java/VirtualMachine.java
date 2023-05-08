@@ -42,6 +42,7 @@ public class VirtualMachine {
             case FLOAT: return "F";
             default:
         }
+        MyVisitor.sb_Errors.append("Datatype "+type.toString()+" unknown (calculatePrimitivesType)\n");
         return "Other";
     }
 
@@ -53,6 +54,8 @@ public class VirtualMachine {
             case "B": return primitives.BOOL;
             default:
         }
+        //MyVisitor.sb_Errors.append("Datatype "+type.toString()+" unknown(calculatePrimitivesReverse)\n");
+
         return primitives.OTHER;
     }
 
@@ -71,6 +74,8 @@ public class VirtualMachine {
                 return false;
             }
         }
+        MyVisitor.sb_Errors.append("Datatype string"+primitives.toString()+" unknown(calculateEmptyVariable)\n");
+
         return "ERROR";
     }
 
@@ -137,12 +142,31 @@ public class VirtualMachine {
     public static String Jump(int value){ return "JMP "+value+"\n";}
 
 
-    public static boolean needAutomaticConversion(ArrayList<String> result1){
+    public static boolean needAutomaticConversion(ArrayList<String> result1, String op){
         ArrayList<VirtualMachine.primitives> primitive = new ArrayList<>();
         for(var str : result1){
             var dataType = str.substring(5,6);
             primitive.add(VirtualMachine.calculatePrimitivesReverse(dataType));
         }
+
+        //CONDITIONS
+        if(op.equals("%") && (primitive.get(0) != VirtualMachine.primitives.INT || primitive.get(1) != VirtualMachine.primitives.INT)){
+            MyVisitor.sb_Errors.append("MOD used incorrectly, expected INT INT, provided: "+primitive.get(0).toString() + " "+primitive.get(1).toString()+"(needAutomaticConversion)\n");
+        }
+        if(op.equals(".") && (primitive.get(0) != primitives.STRING || primitive.get(1) != primitives.STRING)){
+            MyVisitor.sb_Errors.append("Concat used incorrectly, expected STRING STRING, provided: "+primitive.get(0).toString() + " "+primitive.get(1).toString()+"(needAutomaticConversion)\n");
+        }
+        if((op.equals("+") || op.equals("-") || op.equals("*") || op.equals("/")) &&
+                ((primitive.get(0) != VirtualMachine.primitives.INT || primitive.get(1) != VirtualMachine.primitives.FLOAT)
+                        && (primitive.get(0) != VirtualMachine.primitives.FLOAT || primitive.get(1) != VirtualMachine.primitives.INT)
+                && (primitive.get(0) != primitives.INT || primitive.get(1) != VirtualMachine.primitives.INT)
+                && (primitive.get(0) != primitives.FLOAT || primitive.get(1) != primitives.FLOAT))){
+            MyVisitor.sb_Errors.append("Operators used incorrectly, expected INT or FLOAT, provided: "+primitive.get(0).toString() + " "+primitive.get(1).toString()+"(needAutomaticConversion)\n");
+        }
+
+
+
+
         if((primitive.get(0) == VirtualMachine.primitives.INT && primitive.get(1) == VirtualMachine.primitives.FLOAT)
                 || (primitive.get(0) == VirtualMachine.primitives.FLOAT && primitive.get(1) == VirtualMachine.primitives.INT)){
             return true;
@@ -159,8 +183,7 @@ public class VirtualMachine {
                 || (primitive.get(0) == VirtualMachine.primitives.FLOAT && primitive.get(1) == VirtualMachine.primitives.INT)){
             return VirtualMachine.Itof();
         }
-        System.out.println("ERROR with doAutomaticConversion");
-        exit(1);
+        MyVisitor.sb_Errors.append("ERROR with doAutomaticConversion"+"(doAutomaticConversion)\n");
         return "";
     }
 
@@ -177,9 +200,15 @@ public class VirtualMachine {
                     primitive.add(VirtualMachine.calculatePrimitivesReverse(dataType));
                 }
             }
+            if(((primitive.get(0) != VirtualMachine.primitives.INT || primitive.get(1) != VirtualMachine.primitives.FLOAT)
+                    && (primitive.get(0) != VirtualMachine.primitives.FLOAT || primitive.get(1) != VirtualMachine.primitives.INT)
+                    && (primitive.get(0) != primitives.INT || primitive.get(1) != VirtualMachine.primitives.INT)
+                    && (primitive.get(0) != primitives.FLOAT || primitive.get(1) != primitives.FLOAT))){
+                MyVisitor.sb_Errors.append("Relationals operators used incorrectly, expected INT or FLOAT, provided: "+primitive.get(0).toString() + " "+primitive.get(1).toString()+"(needAutomaticConversionRelacni)\n");
+            }
+
             if(!canBeCasted(primitive.get(0),primitive.get(1))){
-                System.out.println("Cannot compare "+primitive.get(0)+" and "+primitive.get(1)+" (< >)");
-                exit(1);
+                return false;
             }
             if((primitive.get(0) == VirtualMachine.primitives.INT && primitive.get(1) == VirtualMachine.primitives.FLOAT)
                     || (primitive.get(0) == VirtualMachine.primitives.FLOAT && primitive.get(1) == VirtualMachine.primitives.INT)){
@@ -194,8 +223,7 @@ public class VirtualMachine {
                 primitive.add(VirtualMachine.calculatePrimitivesReverse(dataType));
             }
             if(!canBeCasted(primitive.get(0),primitive.get(1))){
-                System.out.println("Cannot compare "+primitive.get(0)+" and "+primitive.get(1)+" (== !=)");
-                exit(1);
+                MyVisitor.sb_Errors.append("Cannot compare "+primitive.get(0)+" "+operator.toString()+primitive.get(1)+"(needAutomaticConversionRelacni)\n");
             }
             return false;
         }
@@ -206,8 +234,7 @@ public class VirtualMachine {
                 primitive.add(VirtualMachine.calculatePrimitivesReverse(dataType));
             }
             if(!primitive.get(0).equals(primitives.BOOL) || !primitive.get(1).equals(primitives.BOOL)){
-                System.out.println("Cannot logic compare "+primitive.get(0)+" and "+primitive.get(1)+" (&& ||)");
-                exit(1);
+                MyVisitor.sb_Errors.append("Cannot logic compare "+primitive.get(0)+operator.toString()+primitive.get(1)+" (needAutomaticConversionRelacni\n");
             }
         }
         return false;
@@ -234,10 +261,9 @@ public class VirtualMachine {
             return primitive2;
         }
         else{
-            System.out.println("ERROR conversion");
-            exit(1);
-            return primitives.OTHER;
+            MyVisitor.sb_Errors.append("ERROR conversion"+"(canBeCasterReturn)\n");
         }
+        return null;
     }
 
     public VirtualMachine(String code)
@@ -245,13 +271,24 @@ public class VirtualMachine {
         this.code= List.of(code.split("\n"));
     }
 
+    ArrayList<Integer> labelRows = new ArrayList<>();
+    static int currentCodeRow=0;
     public void Run() throws IOException {
         if(code.size() == 0){
-            System.out.println("No text to process!");
+            MyVisitor.sb_Errors.append("No text to process!\n");
+        }
+        int row=0;
+        for(var instruction : this.code){
+            if(instruction.startsWith("LABEL ")){
+                var number = instruction.substring(6);
+                labelRows.add(row);
+            }
+            row++;
         }
 
         System.out.println("INSTRUKCE: ");
-        for(var instruction : this.code){
+        for(;currentCodeRow<this.code.size();currentCodeRow++){
+            String instruction = this.code.get(currentCodeRow);
             if(instruction.startsWith("ADD")){
                 add();
             }
@@ -309,13 +346,13 @@ public class VirtualMachine {
                 save(instruction);
             }
             else if(instruction.startsWith("LABEL")){
-
+                label();
             }
             else if(instruction.startsWith("JMP")){
-
+                jmp(Integer.parseInt(instruction.substring(4)));
             }
             else if(instruction.startsWith("FJMP")){
-
+                fjmp(Integer.parseInt(instruction.substring(5)));
             }
             else if(instruction.startsWith("PRINT")){
                 print(instruction);
@@ -465,10 +502,42 @@ public class VirtualMachine {
 
         //Dodelat kontrolu na datove typy
         switch (primitive){
-            case INT -> push(new VirtualMachine.myStack(primitives.INT.toString().substring(0,1),value));
-            case FLOAT -> push(new VirtualMachine.myStack(primitives.FLOAT.toString().substring(0,1),value));
-            case STRING -> push(new VirtualMachine.myStack(primitives.STRING.toString().substring(0,1),value));
-            case BOOL -> push(new VirtualMachine.myStack(primitives.BOOL.toString().substring(0,1),value));
+            case INT -> {
+                try {
+                    Integer.parseInt(value);
+                } catch(NumberFormatException e) {
+                    System.out.println("Value "+value+" is not type "+"INT");
+                    exit(1);
+                }
+                    push(new VirtualMachine.myStack(primitives.INT.toString().substring(0,1),value));
+            }
+            case FLOAT -> {
+                try {
+                    Float.parseFloat(value);
+                } catch(NumberFormatException e) {
+                    System.out.println("Value "+value+" is not type "+"FLOAT");
+                    exit(1);
+                }
+                push(new VirtualMachine.myStack(primitives.FLOAT.toString().substring(0,1),value));
+            }
+            case STRING -> {
+                    if (value.startsWith("\"") && value.equals("\"")) {
+                        push(new VirtualMachine.myStack(primitives.STRING.toString().substring(0, 1), value));
+                    } else {
+                        System.out.println("Value "+value+" is not type "+"STRING");
+                        exit(1);
+                    }
+
+            }
+            case BOOL -> {
+                if (value.equals("true") || value.equals("false")) {
+                    push(new VirtualMachine.myStack(primitives.STRING.toString().substring(0, 1), value));
+                } else {
+                    System.out.println("Value "+value+" is not type "+"BOOL");
+                    exit(1);
+                }
+                push(new VirtualMachine.myStack(primitives.BOOL.toString().substring(0,1),value));
+            }
         }
     }
     private void lt(){
@@ -520,5 +589,20 @@ public class VirtualMachine {
         push(new VirtualMachine.myStack(primitives.BOOL.toString().substring(0,1),result));
     }
 
+    private void label(){
+
+    }
+
+    private void jmp(int number){
+        currentCodeRow = labelRows.get(number);
+
+    }
+    private void fjmp(int number){
+        var popped1 = pop();
+        if(popped1.primitives.equals(primitives.BOOL) && popped1.object.toString().equals("false")) {
+            currentCodeRow = labelRows.get(number);
+        }
+
+    }
 
 }

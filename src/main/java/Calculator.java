@@ -61,8 +61,7 @@ public class Calculator {
                 }
             }
         }
-        System.out.println("ERROR calculating");
-        exit(1);
+        MyVisitor.sb_Errors.append("Unable to calculate "+p.toString()+" (calculate)\n");
         return null;
     }
 
@@ -73,8 +72,7 @@ public class Calculator {
             calculatedResult = "\"" + calculatedResult + "\"";
             return calculatedResult;
         } else {
-            System.out.println("ERROR concat");
-            exit(1);
+            MyVisitor.sb_Errors.append("Unable to concat "+popped1.primitives.toString()+" and "+popped2.primitives.toString()+"(concat)\n");
             return null;
         }
     }
@@ -86,8 +84,7 @@ public class Calculator {
                         popped2.primitives.equals(VirtualMachine.primitives.INT) || popped2.primitives.equals(VirtualMachine.primitives.FLOAT)) {
                     return Float.parseFloat(popped1.object.toString()) > Float.parseFloat(popped2.object.toString());
                 } else {
-                    System.out.println("ERROR relational operators");
-                    exit(1);
+                    MyVisitor.sb_Errors.append("Relational operators error "+p.toString()+" not aplicable to "+popped1.primitives.toString()+" "+popped2.primitives.toString()+"(calculateRelationals)\n");
                 }
             }
             case LT -> {
@@ -95,8 +92,7 @@ public class Calculator {
                         popped2.primitives.equals(VirtualMachine.primitives.INT) || popped2.primitives.equals(VirtualMachine.primitives.FLOAT)) {
                     return Float.parseFloat(popped1.object.toString()) < Float.parseFloat(popped2.object.toString());
                 } else {
-                    System.out.println("ERROR relational operators");
-                    exit(1);
+                    MyVisitor.sb_Errors.append("Relational operators error "+p.toString()+" not aplicable to "+popped1.primitives.toString()+" "+popped2.primitives.toString()+"(calculateRelationals)\n");
                 }
             }
             case EQ -> {
@@ -104,8 +100,7 @@ public class Calculator {
                         popped2.primitives.equals(VirtualMachine.primitives.INT) || popped2.primitives.equals(VirtualMachine.primitives.FLOAT) || popped2.primitives.equals(VirtualMachine.primitives.STRING)) {
                     return popped1.object.toString().equals(popped2.object.toString());
                 } else {
-                    System.out.println("ERROR relational operators");
-                    exit(1);
+                    MyVisitor.sb_Errors.append("Relational operators error "+p.toString()+" not aplicable to "+popped1.primitives.toString()+" "+popped2.primitives.toString()+"(calculateRelationals)\n");
                 }
             }
         }
@@ -121,8 +116,7 @@ public class Calculator {
                     }
                     return true;
                 } else {
-                    System.out.println("ERROR logical operators");
-                    exit(1);
+                    MyVisitor.sb_Errors.append("Logical operators error "+p.toString()+" not aplicable to "+popped1.primitives.toString()+" "+popped2.primitives.toString()+"(calculateLogical)\n");
                 }
             }
             case OR -> {
@@ -132,8 +126,8 @@ public class Calculator {
                     }
                     return false;
                 } else {
-                    System.out.println("ERROR logical operators");
-                    exit(1);
+                    MyVisitor.sb_Errors.append("Logical operators error "+p.toString()+" not aplicable to "+popped1.primitives.toString()+" "+popped2.primitives.toString()+"(calculateLogical)\n");
+
                 }
             }
         }

@@ -7,6 +7,7 @@ import static java.lang.System.exit;
 
 public class MyVisitor extends GrammarBaseVisitor{
     ArrayList<String> operators = new ArrayList<>();
+    static StringBuilder sb_Errors = new StringBuilder();
 
     static StackHelper visitorStackHelper = new StackHelper();
 
@@ -71,27 +72,7 @@ public class MyVisitor extends GrammarBaseVisitor{
 
             sb.append(code);
 
-            /*
-            if(lines >= 1){
-                if(!operators.isEmpty()){
-                    //Collections.reverse(operators);
-                    for(var oper : operators){
-                        switch (oper){
-                            case "+" -> sb.append(VirtualMachine.Add());
-                            case "-" -> sb.append(VirtualMachine.Sub());
-                            case "*" -> sb.append(VirtualMachine.Mul());
-                            case "/" -> sb.append(VirtualMachine.Div());
-                            case "%" -> sb.append(VirtualMachine.Mod());
-                            case "." -> sb.append(VirtualMachine.Concat());
-                        }
-                    }
-                    operators = new ArrayList<>();
-                }
-
-            }*/
-
             lines++;
-            //numberOfCodes += code.toString().split("\n").length;
         }
         sb.append("PRINT "+lines+"\n");
         return sb.toString();
@@ -108,8 +89,7 @@ public class MyVisitor extends GrammarBaseVisitor{
                 sb.append(VirtualMachine.Save(variable));
             }
             else{
-                System.out.println("ERROR reading variable");
-                exit(1);
+                sb_Errors.append("Variable "+variable+"not present in stack (visitReadVisitor)\n");
             }
         }
         return sb.toString();
@@ -158,21 +138,6 @@ public class MyVisitor extends GrammarBaseVisitor{
             sb.append(VirtualMachine.Push(premenenyDatovyTyp,hodnotaPrirazeni) + VirtualMachine.Save(promenna));
         }
         return sb.toString();
-        /*
-        var promenna = ctx.VARIABLE().get(0).getText();
-        var premenenyDatovyTyp = VirtualMachine.primitives.valueOf(datovyTyp.toUpperCase());
-
-        Object hodnotaPrirazeni;
-        if(ctx.datovyTyp().isEmpty()){
-            hodnotaPrirazeni= VirtualMachine.calculateEmptyVariable(premenenyDatovyTyp);
-        }
-        else{
-            hodnotaPrirazeni=ctx.datovyTyp().get(0).getText();
-        }
-        visitorStackHelper.addVariable(new VirtualMachine.myStack(String.valueOf(datovyTyp.charAt(0)).toUpperCase(),hodnotaPrirazeni),promenna);
-        return VirtualMachine.Push(premenenyDatovyTyp,hodnotaPrirazeni) + VirtualMachine.Save(promenna);
-
-         */
     }
 
     @Override
@@ -189,6 +154,7 @@ public class MyVisitor extends GrammarBaseVisitor{
 
             if(visitorStackHelper.stackHelper.containsKey(promenna)){
                 var promennaStack = visitorStackHelper.getVariable(promenna);
+
                 if(VirtualMachine.canBeCasted(VirtualMachine.calculatePrimitivesReverse(String.valueOf(datovyTyp.charAt(0))),promennaStack.primitives)){
                     if(VirtualMachine.primitives.valueOf(datovyTyp).equals(VirtualMachine.primitives.INT) &&
                             promennaStack.primitives.equals(VirtualMachine.primitives.FLOAT)){
@@ -196,21 +162,19 @@ public class MyVisitor extends GrammarBaseVisitor{
                     }
                 }
                 else{
-                    System.out.println("Could not cast "+VirtualMachine.calculatePrimitivesReverse(String.valueOf(datovyTyp.charAt(0)))+" to "+promennaStack.primitives);
-                    exit(1);
-                    return "";
+                    sb_Errors.append("Could not cast "+VirtualMachine.calculatePrimitivesReverse(String.valueOf(datovyTyp.charAt(0)))+" to "+promennaStack.primitives+" (visitInicializacePromenne)\n");
                 }
+
+
 
 
             }
             else{
-                System.out.println("Stack does not containt this variable");
-                exit(1);
-                return "";
+                sb_Errors.append("Value "+promenna+" was not declared (visitInicializacePromenne)\n");
             }
 
             if(i!=1){
-                //sb.append(VirtualMachine.Load(promenna));
+                sb.append(VirtualMachine.Load(promenna));
             }
 
             boolean minusOperator=false;
@@ -236,7 +200,7 @@ public class MyVisitor extends GrammarBaseVisitor{
                 first=false;
             }
             //if(i==1)
-            if(true) {
+            if(i==1) {
                 if (minusOperator) {
                     sb.append(VirtualMachine.Uminus() + VirtualMachine.Save(promenna) + VirtualMachine.Load(promenna));
                 } else if (addItof) {
@@ -266,6 +230,7 @@ public class MyVisitor extends GrammarBaseVisitor{
 
 
 
+
         }
         return sb.append(VirtualMachine.Pop()).toString();
     }
@@ -279,10 +244,10 @@ public class MyVisitor extends GrammarBaseVisitor{
             sb.append(result);
             result1.add((String) result);
         }
-        if(VirtualMachine.needAutomaticConversion(result1)){
+        var op = ctx.op.getText();
+        if(VirtualMachine.needAutomaticConversion(result1,op)){
             sb.append(VirtualMachine.doAutomaticConversion(result1));
         }
-        var op = ctx.op.getText();
 
         switch (op) {
             case "+": {
@@ -299,8 +264,7 @@ public class MyVisitor extends GrammarBaseVisitor{
             }
         }
 
-        System.out.println("Error");
-        exit(1);
+        sb_Errors.append("No valid operator "+op+" (visitVisiterPlusMinusSpojeni)\n");
         return null;
     }
 
@@ -313,10 +277,10 @@ public class MyVisitor extends GrammarBaseVisitor{
             sb.append(result);
             result1.add((String) result);
         }
-        if(VirtualMachine.needAutomaticConversion(result1)){
+        var op = ctx.op.getText();
+        if(VirtualMachine.needAutomaticConversion(result1, op)){
             sb.append(VirtualMachine.doAutomaticConversion(result1));
         }
-        var op = ctx.op.getText();
         boolean plus=false,minus=false,concat=false;
         if(sb.toString().contains("ADD \n")){
             sb = new StringBuilder(sb.toString().replace("ADD \n", ""));
@@ -564,6 +528,50 @@ public class MyVisitor extends GrammarBaseVisitor{
             sb.append(VirtualMachine.Label(label));
             labels.add(label);
             label++;
+        }
+
+
+        return sb.toString();
+    }
+
+    @Override
+    public Object visitWhileBlock(GrammarParser.WhileBlockContext ctx) {
+        StringBuilder sb = new StringBuilder();
+
+        int label;
+
+        if(!labels.isEmpty()) {
+            label = labels.get(labels.size() - 1) + 1;
+        }
+        else{
+            label = 0;
+        }
+        sb.append(VirtualMachine.Label(label));
+        labels.add(label);
+        label++;
+        var code = visit(ctx.expression());
+        sb.append(code);
+
+
+        sb.append(VirtualMachine.Fjump(label));
+
+        boolean first = true;
+        int rows=0;
+        for(var code1 : ctx.firstRule()){
+            sb.append(visit(code1));
+            rows++;
+        }
+        if(first) {
+            sb.append(VirtualMachine.Jump(label -1));
+            sb.append(VirtualMachine.Label(label));
+            labels.add(label);
+            label++;
+            first=false;
+        }
+        for(int i=0;i<rows-1;i++){
+            //sb.append(VirtualMachine.Label(label));
+            //labels.add(label);
+            //label++;
         }
 
 

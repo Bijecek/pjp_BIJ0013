@@ -111,6 +111,18 @@ public interface GrammarListener extends ParseTreeListener {
 	 */
 	void exitIfVisitor(GrammarParser.IfVisitorContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code whileBlock}
+	 * labeled alternative in {@link GrammarParser#condition}.
+	 * @param ctx the parse tree
+	 */
+	void enterWhileBlock(GrammarParser.WhileBlockContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code whileBlock}
+	 * labeled alternative in {@link GrammarParser#condition}.
+	 * @param ctx the parse tree
+	 */
+	void exitWhileBlock(GrammarParser.WhileBlockContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code deklaracePromenne}
 	 * labeled alternative in {@link GrammarParser#promenne}.
 	 * @param ctx the parse tree
